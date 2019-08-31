@@ -15,6 +15,8 @@ namespace Chesstube.Win64
         public Form1()
         {
             InitializeComponent();
+
+
         }
     }
 }
