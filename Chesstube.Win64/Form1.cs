@@ -16,7 +16,6 @@ namespace Chesstube.Win64
         {
             InitializeComponent();
 
-
         }
     }
 }

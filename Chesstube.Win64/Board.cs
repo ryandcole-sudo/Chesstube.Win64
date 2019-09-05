@@ -248,6 +248,20 @@ namespace Chesstube
             return false; 
 
         }
+
+        public int[] pieceControls(string square)
+        {
+            int sq = convert(square);
+            return pieceControls(sq);
+        }
+
+        public bool pieceControls(string sqaure_on, string square)
+        {
+            int sqo = convert(sqaure_on);
+            int sq = convert(square);
+            return pieceControls(sqo, sq);
+        }
+
         public int[] pieceDefends(int square) //Finds out what pieces the piece on [square] is defending
         {
             ChessPiece the_piece = this.squares[square];
@@ -276,6 +290,22 @@ namespace Chesstube
 
             return defends_it;
         }
+
+        public int[] pieceDefends(string square)
+        {
+            int sq = convert(square);
+            return pieceDefends(sq);
+        }
+
+        public bool pieceDefends(string square_on, string square)
+        {
+            int sqo = convert(square_on);
+            int sq = convert(square);
+
+            return pieceDefends(sqo,sq);
+
+        }
+
         public bool pieceAttacks(int square_on, int square) //Find out if the piece on [square_on] is defending the piece on [square]
         {
             bool attacks_it = (this.hasPiece(square, ChessPiece.WhitePiece) && this.hasPiece(square_on, ChessPiece.BlackPiece));
@@ -306,6 +336,89 @@ namespace Chesstube
 
         }
 
+        public bool pieceAttacks(string square_on, string square)
+        {
+            int sqo = convert(square_on);
+            int sq = convert(square);
+            return pieceAttacks(sqo, sq);
+        }
+
+        public int[] pieceAttacks(string square)
+        {
+            int sq = convert(square);
+            return pieceAttacks(sq);
+
+        }
+
+        public bool canMove(int square_on, int square)
+        {
+            ChessPiece piece = this.squares[square];
+            ChessPiece piece_on = this.squares[square_on];
+
+            bool same_color = pieceColor(square) == pieceColor(square_on); //Checks whether or not the pieces are the same color
+
+            bool can_move = false;
+
+            if(piece_on == ChessPiece.NoPiece) //Can't move if there is no piece to move 
+            {
+                return false;
+            }
+
+            if (same_color)
+            {
+                return false; //False, since a piece can't capture another piece of the same color
+            }
+
+            //TODO :Insert condition to check if the king is in check
+
+            if (pieceControls(square_on, square)) //If a piece controls a square, it can move to that square
+            {
+                return true;
+            }
+
+            if (hasPiece(square_on, ChessPiece.Pawn)) //Condition for pawn movement
+            {
+                int rank_on = rankof(square_on);
+                int rank = rankof(square);
+
+                int rank_f1 = rank_on + 1; //Rank one sqare forwards
+                int rank_f2 = rank_on + 2; //Rank 2 squares forwards
+                int rank_1 = 2; //Starting rank for the pawn
+
+                if (hasPiece(square))
+                {
+                    return false; //Pawn can't move forwards to a square with another piece on it
+                }
+
+                if(fileof(square) != fileof(square_on))
+                {
+                    return false; //Pawn must stay on the same file, unless it is a capture (which is dealt with in another function)
+                }
+
+                if (hasPiece(square_on, ChessPiece.bPawn)) //Black Pawn moves the other way 
+                {
+                    rank_f1 = rank_on - 1;
+                    rank_f2 = rank_on - 2;
+                    rank_1 = 7;
+                }
+
+                if(rank == rank_f1)
+                {
+                    return true; //Pawns move forwards 1 square
+                }
+                if(rank_on == rank_1 && rank == rank_f2)
+                {
+                    return true; //Pawns can move 2 squares fowards on the first move
+                }
+
+
+                //TODO: Insert En passent rule
+
+            }
+   
+
+            return false;
+        }
 
         public bool isA(ChessPiece the_piece, ChessPiece piece) //Is a piece the same class as another?
         {
@@ -350,6 +463,25 @@ namespace Chesstube
                 
                    
       
+        }
+
+
+        public ChessPiece pieceColor(int square) //Tells the color of the piece on a square 
+        { 
+
+            if (this.hasPiece(square, ChessPiece.WhitePiece))
+            {
+                return ChessPiece.WhitePiece; //The piece is white
+            }
+            else
+            if (this.hasPiece(square, ChessPiece.BlackPiece))
+            {
+                return ChessPiece.BlackPiece; //The piece is black
+            }
+            else
+            {
+                return ChessPiece.NoPiece; //There is no piece on the square
+            }
         }
 
         public int convert(string square) 
@@ -400,5 +532,8 @@ namespace Chesstube
         {
             return rankof(convert(square));
         }
+
+
+
     }
 }
