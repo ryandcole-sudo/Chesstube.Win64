@@ -420,6 +420,13 @@ namespace Chesstube
             return false;
         }
 
+        public bool IsKingInCheck() //Determines whether or not the king  is in check.
+        {
+ 
+            return false;
+        }
+         
+
         public bool isA(ChessPiece the_piece, ChessPiece piece) //Is a piece the same class as another?
         {
             bool has_it = false;
