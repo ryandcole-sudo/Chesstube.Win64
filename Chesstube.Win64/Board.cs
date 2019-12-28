@@ -27,11 +27,11 @@ namespace Chesstube
 
         public enum ChessPiece
         {
+            NoPiece, //Square is empty
             wPawn,wKnight,wBishop,wRook,wQueen,wKing, // White Pieces
             bPawn, bKnight, bBishop, bRook, bQueen, bKing, //Black pieces
             Pawn,Knight,Bishop,Rook,Queen,King,
-            MajorPiece,MinorPiece,BlackPiece,WhitePiece, //Types
-            NoPiece  //square is empty
+            MajorPiece,MinorPiece,BlackPiece,WhitePiece //Types
 
         };
    
@@ -39,7 +39,7 @@ namespace Chesstube
         {
           for(int i = 0; i < 64; i++)
             {
-                squares[i] = ChessPiece.NoPiece; //Fills the Board with empty sqaures
+                squares[i] = ChessPiece.NoPiece; //Fills the Board with empty squares
             } 
         }
         
@@ -93,7 +93,7 @@ namespace Chesstube
 
             for (int i = 0; i < 63; i++)
             {
-                squares[i] = -1; //Initialize all sqaures to -1
+                squares[i] = -1; //Initialize all squares to -1
             }
 
             int k = 0; //Counts the number of squares controlled
@@ -122,13 +122,13 @@ namespace Chesstube
             int rank_diff = Math.Abs(rank_on - rank);
             int file_diff = Math.Abs(file_on - file);
 
-            if(square_on == square) //If the squares are the same then there is no point
+            if (square_on == square) //If the squares are the same then there is no point
             {
                 return false;
             }
 
 
-            if (!this.hasPiece(square_on)) //If  there is no piece on the square, It can't control any square
+            if (!this.hasPiece(square_on)) //If there is no piece on the square, It can't control any square
             {
                 return false;
             }
@@ -166,14 +166,17 @@ namespace Chesstube
                 int sq_min = Math.Min(square, square_on);
                 int sq_max = Math.Max(square, square_on);
 
-                //Check's to see if there are any pieces blocking the bishop
+
+                //Checks to see if there are any pieces blocking the bishop
 
                 for (int i = sq_min+1; i < sq_max-1; i++)
                 {
                    int ir_diff = Math.Abs(rankof(sq_min) - rankof(i)); //Rank difference between i aqnd sq_min
                    int if_diff = Math.Abs(fileof(sq_min) - fileof(i)); //File difference beteween i and sq_min
+                   int idir = rankof(i) - rankof(square_on);
 
-                   if(ir_diff == if_diff)
+                    bool match_direction = (direction > 0 && idir > 0) || (direction < 0 && idir < 0);
+                   if(ir_diff == if_diff&&match_direction)
                    {
                         controls_it = controls_it && (!this.hasPiece(i));
                    }
@@ -191,7 +194,7 @@ namespace Chesstube
                 int sq_min = Math.Min(square, square_on);
                 int sq_max = Math.Max(square, square_on);
 
-
+                //Checks to see if there are pieces blocking the queen
                 if (moves_as_bishop)
                 {
                     int direction = rank_on - rank;
@@ -200,13 +203,14 @@ namespace Chesstube
                     {
                         int ir_diff = Math.Abs(rankof(sq_min) - rankof(i)); //Rank difference between i aqnd sq_min
                         int if_diff = Math.Abs(fileof(sq_min) - fileof(i)); //File difference beteween i and sq_min
+                        int idir = rankof(i) - rankof(square_on);
 
-                        if (ir_diff == if_diff)
+                        bool match_direction = (direction > 0 && idir > 0) || (direction < 0 && idir < 0);
+                        if (ir_diff == if_diff && match_direction)
                         {
                             controls_it = controls_it && (!this.hasPiece(i));
                         }
                     }
-
                     return controls_it;
                 }
 
@@ -223,9 +227,6 @@ namespace Chesstube
                     }
                     return controls_it;
                 }
-
-
-                //TODO: Check to see if there are pieces blocking the queen
             }
             if (this.hasPiece(square_on, ChessPiece.King)) //If there is a king on the square
             {
@@ -235,13 +236,13 @@ namespace Chesstube
             if (this.hasPiece(square_on, ChessPiece.wPawn)) //If the square has a white pawn
             {
                 bool controls_it = (rank_diff == 1 && file_diff == 1);
-                controls_it = (controls_it) && (square_on < square);
+                controls_it = (controls_it) && (square_on < square)&&hasPiece(square);
                 return controls_it;
             }
             if (this.hasPiece(square_on, ChessPiece.bPawn)) //If the square has a white pawn
             {
                 bool controls_it = (rank_diff == 1 && file_diff == 1);
-                controls_it = (controls_it) && (square_on > square);
+                controls_it = (controls_it) && (square_on > square)&&hasPiece(square);
                 return controls_it;
             }
 
@@ -255,9 +256,9 @@ namespace Chesstube
             return pieceControls(sq);
         }
 
-        public bool pieceControls(string sqaure_on, string square)
+        public bool pieceControls(string square_on, string square)
         {
-            int sqo = convert(sqaure_on);
+            int sqo = convert(square_on);
             int sq = convert(square);
             return pieceControls(sqo, sq);
         }
@@ -308,13 +309,14 @@ namespace Chesstube
 
         public bool pieceAttacks(int square_on, int square) //Find out if the piece on [square_on] is defending the piece on [square]
         {
-            bool attacks_it = (this.hasPiece(square, ChessPiece.WhitePiece) && this.hasPiece(square_on, ChessPiece.BlackPiece));
-            attacks_it = (this.hasPiece(square, ChessPiece.BlackPiece) && this.hasPiece(square_on, ChessPiece.WhitePiece)) && attacks_it;
+            bool same_color = pieceColor(square) == pieceColor(square_on); //Checks whether or not the pieces are the same color
+            bool attacks_it = !same_color && hasPiece(square);
 
             attacks_it = this.pieceControls(square_on, square) && attacks_it;
 
             return attacks_it;
         }
+        
 
         public int[] pieceAttacks(int square) //Finds out what pieces the piece on [square] is defending
         {
@@ -350,14 +352,26 @@ namespace Chesstube
 
         }
 
+        public bool isAttacked(int square)
+        {
+            bool is_attacked = false;
+            for(int i=0; i < 63; i++)
+            {
+                is_attacked = pieceAttacks(i, square) || is_attacked;
+            }
+            return is_attacked;
+        }
+        public bool isAttacked(string square)
+        {
+            return isAttacked(convert(square));
+        }
+
         public bool canMove(int square_on, int square)
         {
             ChessPiece piece = this.squares[square];
             ChessPiece piece_on = this.squares[square_on];
 
             bool same_color = pieceColor(square) == pieceColor(square_on); //Checks whether or not the pieces are the same color
-
-            bool can_move = false;
 
             if(piece_on == ChessPiece.NoPiece) //Can't move if there is no piece to move 
             {
@@ -366,10 +380,26 @@ namespace Chesstube
 
             if (same_color)
             {
-                return false; //False, since a piece can't capture another piece of the same color
+                return false ; //False, since a piece can't capture another piece of the same color
             }
 
-            //TODO :Insert condition to check if the king is in check
+            bool blackmove_onwhite = pieceColor(square_on) == ChessPiece.BlackPiece && !blacktomove;
+            bool whitemove_onblack = pieceColor(square_on) == ChessPiece.WhitePiece && blacktomove;
+            if (blackmove_onwhite || whitemove_onblack)
+                 return false;
+            /*
+            if (IsKingInCheck())
+            {
+                Board testboard = new Board();
+                testboard.squares = this.squares;
+                testboard.MovePiece(square_on, square);
+
+                if (testboard.IsKingInCheck()) //If the king is still in check after the move, then it isn't valid.
+                    return false;
+            }
+            */
+            Console.WriteLine(IsKingInCheck()); //TODO: <<DEBUG
+            
 
             if (pieceControls(square_on, square)) //If a piece controls a square, it can move to that square
             {
@@ -420,12 +450,79 @@ namespace Chesstube
             return false;
         }
 
+        public bool canMove(string square)
+        {
+            return true; //TODO: Edit this
+        }
+
         public bool IsKingInCheck() //Determines whether or not the king  is in check.
         {
- 
+            int kng_sq = -1;
+            for(int i=0;i<63;i++){
+                if ( (blacktomove && hasPiece(i, ChessPiece.wKing)) || (!blacktomove && hasPiece(i, ChessPiece.bKing)))
+                {
+                    kng_sq = i;
+                    break;
+                }
+            }
+            if(kng_sq > 0)
+            {
+                return isAttacked(kng_sq);
+            }
+
             return false;
         }
-         
+
+
+        public bool Move(int square_on, int square) //Moves a piece from one square to the next. Checks that the move is valid and makes the move if it is
+        {
+            if (canMove(square_on, square))
+            {
+                blacktomove = !blacktomove;
+                MovePiece(square_on, square);
+                return true;
+            }
+            return false;
+        }
+
+        public void Move(string square)
+        {
+             /*
+              *  Move formats
+              *  e4 Pawn forwards
+              *  Ne4 Move piece
+              *  Nxe4 Capture piece
+              *  Nce4 Move piece (w/o amb)
+              *  Ncxe4 Capture (w/o amb)
+              *  exd5 Pawn capture
+              *  0-0 Castle
+              *  0-0-0 King side castle
+              */
+            //TODO: Add function body
+        }
+        public void Move(string square, string square_to)
+        {
+            int sq = convert(square);
+            int sqt = convert(square_to);
+
+            Move(sq, sqt);
+        }
+
+        public void MovePiece(int square_on, int square) //Moves a piece from one square to another without verifying the move
+        {
+            if(square_on == square)
+                return;
+            
+            this.squares[square] = this.squares[square_on];
+            this.squares[square_on] = ChessPiece.NoPiece;
+        }
+        
+        public bool setup_fen(string fen_string) //Returns true if setup string is valid
+        {
+            squares = PGNReader.decode_FEN(fen_string);
+            blacktomove = PGNReader.FEN_black_to_move(fen_string);
+            return false;
+        }
 
         public bool isA(ChessPiece the_piece, ChessPiece piece) //Is a piece the same class as another?
         {
@@ -461,7 +558,7 @@ namespace Chesstube
                         has_it = (the_piece == ChessPiece.bPawn || the_piece == ChessPiece.bRook || the_piece == ChessPiece.bKnight || the_piece == ChessPiece.bKing || the_piece == ChessPiece.bBishop || the_piece == ChessPiece.bQueen);
                         return has_it;
                     case ChessPiece.WhitePiece:
-                        has_it = (the_piece == ChessPiece.wPawn || the_piece == ChessPiece.wRook || the_piece == ChessPiece.wKnight || the_piece == ChessPiece.wKing || the_piece == ChessPiece.wBishop || the_piece == ChessPiece.bQueen);
+                        has_it = (the_piece == ChessPiece.wPawn || the_piece == ChessPiece.wRook || the_piece == ChessPiece.wKnight || the_piece == ChessPiece.wKing || the_piece == ChessPiece.wBishop || the_piece == ChessPiece.wQueen);
                         return has_it;
                     default:
                         return false; 
@@ -539,7 +636,6 @@ namespace Chesstube
         {
             return rankof(convert(square));
         }
-
 
 
     }

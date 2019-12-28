@@ -15,7 +15,22 @@ namespace Chesstube.Win64
         public Form1()
         {
             InitializeComponent();
+           
+        }
 
+        private void Form1_Load(object sender, EventArgs e)
+        {
+           
+        }
+
+        private void chessBoard1_Load(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            chessBoard1.new_game();
         }
     }
 }
