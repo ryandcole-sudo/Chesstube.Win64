@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -25,6 +26,10 @@ namespace Chesstube.Win64
             Null,PlayGame,SetupBoard
         }
 
+        //For Graphics
+         Board.ChessPiece[] l_squares = new Board.ChessPiece[64];
+        int l_selected = -1;
+
         public ChessBoard()
         {
             InitializeComponent();
@@ -32,16 +37,9 @@ namespace Chesstube.Win64
 
         private void ChessBoard_Load(object sender, EventArgs e)
         {
-
             new_game();
                
         }
-
-        private void tableLayoutPanel1_Paint(object sender, PaintEventArgs e)
-        {
-     
-        }
-
         private void tableLayoutPanel1_MouseClick(object sender, MouseEventArgs e)
         {
             if(e.Button == MouseButtons.Left) //Left click to select square and make moves
@@ -52,8 +50,14 @@ namespace Chesstube.Win64
 
                 int x = (7-c) * 8 + f;
 
-                if (selected_square > 0)
+                if (selected_square >= 0)
                 {
+                    int[] a = new int[2];
+                    a[0] = selected_square;
+                    a[1] = x;
+                    // Form1.ActiveForm.Text = PGNReader.decodeMove(board, "Nc3", a).ToString();
+                    Form.ActiveForm.Text = PGNReader.convertMove(board, a);
+
                     board.Move(selected_square, x);
                     selected_square = -1;
                 }
@@ -72,8 +76,8 @@ namespace Chesstube.Win64
 
                 Rectangle square = new Rectangle(loc, siz);
 
-                Graphics g = tableLayoutPanel1.CreateGraphics();
-                paint_full(g);
+                //Graphics g = tableLayoutPanel1.CreateGraphics();
+               // paint_full(g);
 
             }
            if( e.Button == MouseButtons.Right) //Right Click to show context menu
@@ -87,19 +91,19 @@ namespace Chesstube.Win64
 
         private void tableLayoutPanel1_CellPaint(object sender, TableLayoutCellPaintEventArgs e)
         {
-
             paint_cell(e.Graphics, e.Row, e.Column);
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
            Graphics g = tableLayoutPanel1.CreateGraphics();
-           paint_cell(g, 0, 0);
+            paint_full(g);
 
         }
 
         protected void paint_cell(Graphics g, int col, int row)
         {
+            
 
             int size = tableLayoutPanel1.Height; //Assume height=width(that should be true);
 
@@ -111,6 +115,8 @@ namespace Chesstube.Win64
 
             Rectangle square = new Rectangle(loc, siz);
 
+            int i = col * 8 + row;
+
             g.FillRectangle(Brushes.White, square); //Clears the cell
 
             if (col % 2 != row % 2)
@@ -118,15 +124,7 @@ namespace Chesstube.Win64
                 g.FillRectangle(Brushes.Navy, square);
 
             }
-
-
-
-
-            if (board.hasPiece(Board.ChessPiece.NoPiece))
-            {
-                //e.Graphics.DrawImage(chessImg.Images[2], square);
-            }
-
+            
             int file = col;
             int rank = 7 - row;
 
@@ -177,19 +175,49 @@ namespace Chesstube.Win64
 
             }
 
-            if (col* 8 + col == selected_square)
+            if ( (7-row)* 8 + col == selected_square)
             {
                 g.DrawRectangle(Pens.OrangeRed, square);
             }
 
+           
+        }
+        public void highlight_cell(Graphics g, int col,int row)
+        {
+
+            int size = tableLayoutPanel1.Height; //Assume height=width(that should be true);
+
+            int size8 = size / 8; // one-eigth the size of the board(The size of the board on the square)
+
+            Point loc = new Point(size8 * col, size8 * row);  //Location of the square
+
+            Size siz = new Size(size8, size8);
+
+            Rectangle square = new Rectangle(loc, siz);
+
+            g.DrawRectangle(Pens.OrangeRed, square);
 
         }
         protected void paint_full(Graphics g)
         {
-            for(int i = 0; i < 64; i++)
+
+
+            for (int i = 0; i < 64; i++)
             {
-                paint_cell(g, i % 8, i / 8);
+                if (l_squares[i] != board.squares[i])
+                {
+                    l_squares[i] = board.squares[i];
+                    paint_cell(g, i %8,7- i / 8);
+                }
+                if(l_selected != selected_square&&i==selected_square)
+                {
+                    l_selected = selected_square;
+                    paint_cell(g, i % 8, 7 - i / 8);
+                    Console.Write("doing...");
+                }
+
             }
+            
         }
         public void set_up(string set_up)
         {
@@ -197,8 +225,11 @@ namespace Chesstube.Win64
         }
         public void new_game()
         {
-            board.setup_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w Qkq - 0 1");
+            board.setup_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+            selected_square = -1;
+            
         }
+        
     }
 
     

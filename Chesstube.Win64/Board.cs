@@ -148,7 +148,7 @@ namespace Chesstube
                 int sq_max = Math.Max(square, square_on);
 
                 //Checks to see if there are pieces blocking the rook
-                for (int i = sq_min+1; i < sq_max-1; i++)
+                for (int i = sq_min+1; i < sq_max; i++)
                 {
                       if (direction > 0 && (rankof(square) == rankof(i)))
                         controls_it = (controls_it) && (!this.hasPiece(i));
@@ -161,7 +161,7 @@ namespace Chesstube
             if (this.hasPiece(square_on, ChessPiece.Bishop)) //If there is a bishop on the square
             {
                 bool controls_it = (rank_diff == file_diff) && (rank_diff != 0);
-                int direction = rank_on - rank; //Negative means to the right. Positive,to the left.
+                int direction = file_on - file; //Negative means to the right. Positive,to the left.
 
                 int sq_min = Math.Min(square, square_on);
                 int sq_max = Math.Max(square, square_on);
@@ -171,13 +171,13 @@ namespace Chesstube
 
                 for (int i = sq_min+1; i < sq_max-1; i++)
                 {
-                   int ir_diff = Math.Abs(rankof(sq_min) - rankof(i)); //Rank difference between i aqnd sq_min
-                   int if_diff = Math.Abs(fileof(sq_min) - fileof(i)); //File difference beteween i and sq_min
-                   int idir = rankof(i) - rankof(square_on);
-
-                    bool match_direction = (direction > 0 && idir > 0) || (direction < 0 && idir < 0);
-                   if(ir_diff == if_diff&&match_direction)
+                   int ir_diff = Math.Abs(rankof(square_on) - rankof(i)); //Rank difference between i aqnd sq_min
+                   int if_diff = Math.Abs(fileof(square_on) - fileof(i)); //File difference beteween i and sq_min
+                   int idir =     fileof(square_on) - fileof(i);
+                   bool match_direction = (direction < 0  || idir > 0)&& (direction>0 || idir<0);
+                   if(ir_diff == if_diff && match_direction)
                    {
+                        Console.WriteLine(i);
                         controls_it = controls_it && (!this.hasPiece(i));
                    }
                 }
@@ -197,17 +197,17 @@ namespace Chesstube
                 //Checks to see if there are pieces blocking the queen
                 if (moves_as_bishop)
                 {
-                    int direction = rank_on - rank;
+                    int direction = file_on - file; //Negative means to the right. Positive,to the left.
 
                     for (int i = sq_min + 1; i < sq_max - 1; i++)
                     {
-                        int ir_diff = Math.Abs(rankof(sq_min) - rankof(i)); //Rank difference between i aqnd sq_min
-                        int if_diff = Math.Abs(fileof(sq_min) - fileof(i)); //File difference beteween i and sq_min
-                        int idir = rankof(i) - rankof(square_on);
-
-                        bool match_direction = (direction > 0 && idir > 0) || (direction < 0 && idir < 0);
+                        int ir_diff = Math.Abs(rankof(square_on) - rankof(i)); //Rank difference between i aqnd sq_min
+                        int if_diff = Math.Abs(fileof(square_on) - fileof(i)); //File difference beteween i and sq_min
+                        int idir = fileof(square_on) - fileof(i);
+                        bool match_direction = (direction < 0 || idir > 0) && (direction > 0 || idir < 0);
                         if (ir_diff == if_diff && match_direction)
                         {
+                            Console.WriteLine(i);
                             controls_it = controls_it && (!this.hasPiece(i));
                         }
                     }
@@ -368,6 +368,10 @@ namespace Chesstube
 
         public bool canMove(int square_on, int square)
         {
+            if (square > 63 || square_on >63) //Ignore 
+            {
+                return false;
+            }
             ChessPiece piece = this.squares[square];
             ChessPiece piece_on = this.squares[square_on];
 
@@ -382,25 +386,21 @@ namespace Chesstube
             {
                 return false ; //False, since a piece can't capture another piece of the same color
             }
+            if (canCastle(square, square_on))
+                return true;
 
             bool blackmove_onwhite = pieceColor(square_on) == ChessPiece.BlackPiece && !blacktomove;
             bool whitemove_onblack = pieceColor(square_on) == ChessPiece.WhitePiece && blacktomove;
             if (blackmove_onwhite || whitemove_onblack)
                  return false;
-            /*
-            if (IsKingInCheck())
-            {
-                Board testboard = new Board();
-                testboard.squares = this.squares;
-                testboard.MovePiece(square_on, square);
 
-                if (testboard.IsKingInCheck()) //If the king is still in check after the move, then it isn't valid.
-                    return false;
-            }
-            */
-            Console.WriteLine(IsKingInCheck()); //TODO: <<DEBUG
-            
+            Board testboard = new Board();
+            testboard.clonePosition(this);
+            testboard.MovePiece(square_on, square);
 
+            if (testboard.IsKingInCheck()) //If the king is still in check after the move, then it isn't valid.
+                return false;
+           
             if (pieceControls(square_on, square)) //If a piece controls a square, it can move to that square
             {
                 return true;
@@ -455,11 +455,44 @@ namespace Chesstube
             return true; //TODO: Edit this
         }
 
+        public bool canCastle(int square_on,int square)
+        {
+            if (IsKingInCheck())
+                return false;
+            bool can_castle = false;
+
+            if (square_on == 4 && square == 6) //White King Side Castle
+            {
+                can_castle = white_king_castle && !hasPiece(5) && !hasPiece(6);
+                can_castle = can_castle && !isAttacked(5) && !isAttacked(6);
+                can_castle = can_castle && !blacktomove;
+            }
+            if (square_on == 4 && square == 2) //White Queen side castle
+            {
+                can_castle = white_queen_castle && !hasPiece(3) && !hasPiece(2) && !hasPiece(1);
+                can_castle = can_castle && !isAttacked(3) && !isAttacked(2);
+                can_castle = can_castle && !blacktomove;
+            }
+            if (square_on == 60 && square == 62) //Black King side castle
+            {
+                can_castle = black_king_castle && !hasPiece(61) && !hasPiece(62);
+                can_castle = can_castle && !isAttacked(61) && !isAttacked(62);
+                can_castle = can_castle && blacktomove;
+            }
+            if (square_on == 60 && square == 58) //Black Queen side castle
+            {
+                can_castle = black_queen_castle && !hasPiece(59) && !hasPiece(58) && !hasPiece(57);
+                can_castle = can_castle && !isAttacked(59) && !isAttacked(58);
+                can_castle = can_castle && blacktomove;
+            }
+            return can_castle;
+        }
+
         public bool IsKingInCheck() //Determines whether or not the king  is in check.
         {
             int kng_sq = -1;
             for(int i=0;i<63;i++){
-                if ( (blacktomove && hasPiece(i, ChessPiece.wKing)) || (!blacktomove && hasPiece(i, ChessPiece.bKing)))
+                if ( (!blacktomove && hasPiece(i, ChessPiece.wKing)) || (blacktomove && hasPiece(i, ChessPiece.bKing)))
                 {
                     kng_sq = i;
                     break;
@@ -476,12 +509,59 @@ namespace Chesstube
 
         public bool Move(int square_on, int square) //Moves a piece from one square to the next. Checks that the move is valid and makes the move if it is
         {
+            en_passantsquare = 0;
+            if (canCastle(square_on, square))
+            {
+                blacktomove = !blacktomove;
+                MovePiece(square_on, square);
+                if (square == 2) //white queen side
+                    MovePiece(0, 3);
+                if (square == 6)
+                    MovePiece(7, 5); // white king side
+                if (square == 58)
+                    MovePiece(56, 59); //black queen side
+                if (square == 62) //black king side
+                    MovePiece(63, 61);
+                return true;
+            }
             if (canMove(square_on, square))
             {
                 blacktomove = !blacktomove;
                 MovePiece(square_on, square);
+
+                if (hasPiece(square, ChessPiece.wKing)) //If the king moves, no more castling
+                {
+                    white_king_castle = false;
+                    white_queen_castle = false;
+                }
+                if (hasPiece(square, ChessPiece.bKing))
+                {
+                    black_king_castle = false;
+                    black_queen_castle = false;
+                }
+                if(hasPiece(square,ChessPiece.wRook))
+                {
+                    if (square_on == 0)
+                        white_queen_castle = false;
+                    if (square_on == 7)
+                        white_king_castle = false;
+                }
+                if (hasPiece(square, ChessPiece.bRook))
+                {
+                    if (square_on == 56)
+                        black_queen_castle = false;
+                    if (square_on == 63)
+                        black_king_castle = false;
+                }
+
+                if (rankof(square) == 8 && hasPiece(square, ChessPiece.wPawn)) //White Pawn Promotion
+                    putPiece(square, ChessPiece.wQueen);
+                if (rankof(square) == 1 && hasPiece(square, ChessPiece.bPawn)) //White Pawn Promotion
+                    putPiece(square, ChessPiece.bQueen);
                 return true;
             }
+            
+           
             return false;
         }
 
@@ -512,7 +592,7 @@ namespace Chesstube
         {
             if(square_on == square)
                 return;
-            
+
             this.squares[square] = this.squares[square_on];
             this.squares[square_on] = ChessPiece.NoPiece;
         }
@@ -521,6 +601,13 @@ namespace Chesstube
         {
             squares = PGNReader.decode_FEN(fen_string);
             blacktomove = PGNReader.FEN_black_to_move(fen_string);
+
+            bool[] array_castle = new bool[4];
+            PGNReader.FEN_castle(fen_string,array_castle); 
+            white_king_castle = array_castle[0];
+            white_queen_castle = array_castle[1];
+            black_king_castle = array_castle[2];
+            black_queen_castle = array_castle[3];
             return false;
         }
 
@@ -588,6 +675,22 @@ namespace Chesstube
             }
         }
 
+        public void clonePosition(Board board) //Copies the completeposition from another board
+        {
+            whiteatop = board.whiteatop;
+            blacktomove = board.blacktomove;
+            en_passantsquare = board.en_passantsquare;
+            white_king_castle = board.white_king_castle;
+            black_king_castle = board.black_king_castle;
+            white_queen_castle = board.white_queen_castle;
+            black_queen_castle = board.black_queen_castle;
+            halfmove_count = board.halfmove_count;
+            fullmove_count = board.fullmove_count;
+
+            for (int i = 0; i < 63; i++)
+                squares[i] = board.squares[i]; 
+        }
+
         public int convert(string square) 
         {
             char file_letter = square[0];
@@ -613,8 +716,8 @@ namespace Chesstube
             rank_number += '0';
 
             string coord = "A5";
-            coord.Replace('A', file_letter);
-            coord.Replace('5', rank_number);
+            coord =  coord.Replace('A', file_letter);
+            coord  = coord.Replace('5', rank_number);
             return coord;
         }
         public int rankof(int square)
