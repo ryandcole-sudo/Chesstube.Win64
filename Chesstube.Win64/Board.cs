@@ -4,8 +4,10 @@ using System.Text;
 
 namespace Chesstube
 {
-    class Board
+    public  class Board
     {
+        public readonly Stack<int[]> MoveList = new Stack<int[]>(); //A stack representing the list of moves.
+        
         public ChessPiece[] squares = new ChessPiece[64]; //Stores what piece are on what squares
         public bool blacktomove = false; //Is it Black's turn to move? If not it's White's turn
 
@@ -19,7 +21,7 @@ namespace Chesstube
         public bool black_queen_castle = false; //Can Black castle queen side?
 
         //Move counters
-        public int halfmove_count = 0;
+        public int halfmove_count = 0; //Number of half moves since the last capture or pawn move 
         public int fullmove_count = 0;
 
         //Board Orientation
@@ -37,6 +39,8 @@ namespace Chesstube
    
         public Board()
         {
+            MoveList = new Stack<int[]>();
+
           for(int i = 0; i < 64; i++)
             {
                 squares[i] = ChessPiece.NoPiece; //Fills the Board with empty squares
@@ -53,6 +57,8 @@ namespace Chesstube
         }
         public bool hasPiece(int square)  //Queries whether or not the square is empty
         {
+            if (square > 63)
+                return false;
             if (this.squares[square] == ChessPiece.NoPiece)
                 return false;
             else
@@ -177,7 +183,6 @@ namespace Chesstube
                    bool match_direction = (direction < 0  || idir > 0)&& (direction>0 || idir<0);
                    if(ir_diff == if_diff && match_direction)
                    {
-                        Console.WriteLine(i);
                         controls_it = controls_it && (!this.hasPiece(i));
                    }
                 }
@@ -207,7 +212,6 @@ namespace Chesstube
                         bool match_direction = (direction < 0 || idir > 0) && (direction > 0 || idir < 0);
                         if (ir_diff == if_diff && match_direction)
                         {
-                            Console.WriteLine(i);
                             controls_it = controls_it && (!this.hasPiece(i));
                         }
                     }
@@ -368,7 +372,7 @@ namespace Chesstube
 
         public bool canMove(int square_on, int square)
         {
-            if (square > 63 || square_on >63) //Ignore 
+            if (square > 63 || square_on >63 || square < 0 || square_on <0) //Ignore 
             {
                 return false;
             }
@@ -452,7 +456,15 @@ namespace Chesstube
 
         public bool canMove(string square)
         {
-            return true; //TODO: Edit this
+            int[] move_array = new int[2];
+            if(PGNReader.decodeMove(this,square, move_array))
+                return canMove(move_array[0],move_array[1]);
+
+            return false;
+        }
+        public bool canMove()
+        {
+            return hasMove();
         }
 
         public bool canCastle(int square_on,int square)
@@ -488,6 +500,26 @@ namespace Chesstube
             return can_castle;
         }
 
+        public bool hasMove(int square_on) //Determines whether or not the piece on the square has a move
+        {
+            bool has_move = false;
+            for(int i = 0; i < 63; i++)
+            {
+                has_move = has_move||canMove(square_on, i);
+            }
+            return has_move;
+        }
+        public bool hasMove()
+        {
+            bool has_move = false;
+            for (int i = 0; i < 63; i++)
+            {
+                has_move = has_move||hasMove(i);
+            }
+            return has_move;
+        }
+        
+
         public bool IsKingInCheck() //Determines whether or not the king  is in check.
         {
             int kng_sq = -1;
@@ -505,13 +537,26 @@ namespace Chesstube
 
             return false;
         }
-
+        public bool IsCheckmate() //Determines whether or not the King is  Checkmated
+        {
+            bool is_checkmate = IsKingInCheck() && !hasMove();
+            return is_checkmate;
+        }
+        public bool IsStalemate()
+        {
+            bool is_stalemate = !IsKingInCheck() && !hasMove();
+            return false; //TODO: <<this
+        }
 
         public bool Move(int square_on, int square) //Moves a piece from one square to the next. Checks that the move is valid and makes the move if it is
         {
             en_passantsquare = 0;
+
+            int[] move = { square_on, square };
+
             if (canCastle(square_on, square))
             {
+                MoveList.Push(move);
                 blacktomove = !blacktomove;
                 MovePiece(square_on, square);
                 if (square == 2) //white queen side
@@ -526,6 +571,7 @@ namespace Chesstube
             }
             if (canMove(square_on, square))
             {
+                MoveList.Push(move);
                 blacktomove = !blacktomove;
                 MovePiece(square_on, square);
 
@@ -567,18 +613,9 @@ namespace Chesstube
 
         public void Move(string square)
         {
-             /*
-              *  Move formats
-              *  e4 Pawn forwards
-              *  Ne4 Move piece
-              *  Nxe4 Capture piece
-              *  Nce4 Move piece (w/o amb)
-              *  Ncxe4 Capture (w/o amb)
-              *  exd5 Pawn capture
-              *  0-0 Castle
-              *  0-0-0 King side castle
-              */
-            //TODO: Add function body
+            int[] move_array = new int[2];
+            if (PGNReader.decodeMove(this, square, move_array))
+                Move(move_array[0], move_array[1]);
         }
         public void Move(string square, string square_to)
         {
@@ -599,6 +636,7 @@ namespace Chesstube
         
         public bool setup_fen(string fen_string) //Returns true if setup string is valid
         {
+            MoveList.Clear();
             squares = PGNReader.decode_FEN(fen_string);
             blacktomove = PGNReader.FEN_black_to_move(fen_string);
 
@@ -677,6 +715,8 @@ namespace Chesstube
 
         public void clonePosition(Board board) //Copies the completeposition from another board
         {
+            MoveList.Clear();
+
             whiteatop = board.whiteatop;
             blacktomove = board.blacktomove;
             en_passantsquare = board.en_passantsquare;
@@ -739,7 +779,5 @@ namespace Chesstube
         {
             return rankof(convert(square));
         }
-
-
     }
 }

@@ -15,31 +15,40 @@ namespace Chesstube.Win64
 {
     public partial class ChessBoard : UserControl
     {
-        Board board = new Board();
+        public  Board board = new Board();
+
+        public Stack<int[]> MoveList;
+        public List<int[]> UndoList;
 
         GameMode gameMode = GameMode.PlayGame;
 
+        public String FenString = "";
+
         public int selected_square = -1;
-        
+
+        public event EventHandler MoveMade; //Whenever a valid move is made on the chessboard
+
         public enum GameMode
         {
-            Null,PlayGame,SetupBoard
+            Null, PlayGame, SetupBoard
         }
 
         //For Graphics
-         Board.ChessPiece[] l_squares = new Board.ChessPiece[64];
+        Board.ChessPiece[] l_squares = new Board.ChessPiece[64];
         int l_selected = -1;
 
         public ChessBoard()
         {
             InitializeComponent();
+            MoveList = board.MoveList;
         }
 
         private void ChessBoard_Load(object sender, EventArgs e)
         {
             new_game();
-               
+            Console.WriteLine("FEN: " + PGNReader.convert_FEN(board));   
         }
+
         private void tableLayoutPanel1_MouseClick(object sender, MouseEventArgs e)
         {
             if(e.Button == MouseButtons.Left) //Left click to select square and make moves
@@ -52,14 +61,35 @@ namespace Chesstube.Win64
 
                 if (selected_square >= 0)
                 {
+
+                    bool can_move = false;
+
+                    if (board.canMove(selected_square, x))
+                    {
+                        
+                        can_move = true;
+                    }
+
+
                     int[] a = new int[2];
                     a[0] = selected_square;
                     a[1] = x;
+
+                   
                     // Form1.ActiveForm.Text = PGNReader.decodeMove(board, "Nc3", a).ToString();
-                    Form.ActiveForm.Text = PGNReader.convertMove(board, a);
+                    //Form.ActiveForm.Text = PGNReader.convertMove(board, a);
+                    //board.Move(Form.ActiveForm.Text); //TODO: <<DEBUG
 
                     board.Move(selected_square, x);
+
+                    if (can_move)
+                    {
+                        EventArgs evt = new EventArgs();
+                        MoveMade(this, evt);
+                    }
+                  
                     selected_square = -1;
+                    
                 }
                 else
                 {
@@ -213,7 +243,6 @@ namespace Chesstube.Win64
                 {
                     l_selected = selected_square;
                     paint_cell(g, i % 8, 7 - i / 8);
-                    Console.Write("doing...");
                 }
 
             }
@@ -221,15 +250,29 @@ namespace Chesstube.Win64
         }
         public void set_up(string set_up)
         {
+            FenString = set_up;
             board.setup_fen(set_up);
         }
         public void new_game()
         {
-            board.setup_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+            set_up("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
             selected_square = -1;
-            
         }
+        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Clipboard.SetText(PGNReader.convert_FEN(board));
+        }
+
+        private void pastePositionToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            if (Clipboard.ContainsText())
+                set_up(Clipboard.GetText());
+        }
+
         
+
+
+     
     }
 
     

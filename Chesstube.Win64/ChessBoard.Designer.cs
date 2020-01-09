@@ -31,7 +31,16 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ChessBoard));
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.quitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.copyPositionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pastePositionToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.copyGameToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.pasteGameToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.pasteGameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.savePositionToFENToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadPGNToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadFENToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.chessImg = new System.Windows.Forms.ImageList(this.components);
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
@@ -42,15 +51,82 @@
             // 
             this.contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.quitToolStripMenuItem});
+            this.copyPositionToolStripMenuItem,
+            this.pasteGameToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(107, 28);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(211, 80);
             // 
-            // quitToolStripMenuItem
+            // copyPositionToolStripMenuItem
             // 
-            this.quitToolStripMenuItem.Name = "quitToolStripMenuItem";
-            this.quitToolStripMenuItem.Size = new System.Drawing.Size(106, 24);
-            this.quitToolStripMenuItem.Text = "Quit";
+            this.copyPositionToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.copyToolStripMenuItem,
+            this.pastePositionToolStripMenuItem1,
+            this.copyGameToolStripMenuItem1,
+            this.pasteGameToolStripMenuItem1});
+            this.copyPositionToolStripMenuItem.Name = "copyPositionToolStripMenuItem";
+            this.copyPositionToolStripMenuItem.Size = new System.Drawing.Size(210, 24);
+            this.copyPositionToolStripMenuItem.Text = "Clipboard";
+            // 
+            // copyToolStripMenuItem
+            // 
+            this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(216, 26);
+            this.copyToolStripMenuItem.Text = "Copy Position";
+            this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
+            // 
+            // pastePositionToolStripMenuItem1
+            // 
+            this.pastePositionToolStripMenuItem1.Name = "pastePositionToolStripMenuItem1";
+            this.pastePositionToolStripMenuItem1.Size = new System.Drawing.Size(216, 26);
+            this.pastePositionToolStripMenuItem1.Text = "Paste Position";
+            this.pastePositionToolStripMenuItem1.Click += new System.EventHandler(this.pastePositionToolStripMenuItem1_Click);
+            // 
+            // copyGameToolStripMenuItem1
+            // 
+            this.copyGameToolStripMenuItem1.Name = "copyGameToolStripMenuItem1";
+            this.copyGameToolStripMenuItem1.Size = new System.Drawing.Size(216, 26);
+            this.copyGameToolStripMenuItem1.Text = "Copy Game";
+            // 
+            // pasteGameToolStripMenuItem1
+            // 
+            this.pasteGameToolStripMenuItem1.Name = "pasteGameToolStripMenuItem1";
+            this.pasteGameToolStripMenuItem1.Size = new System.Drawing.Size(216, 26);
+            this.pasteGameToolStripMenuItem1.Text = "Paste Game";
+            // 
+            // pasteGameToolStripMenuItem
+            // 
+            this.pasteGameToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.savePositionToFENToolStripMenuItem,
+            this.saveToolStripMenuItem,
+            this.loadPGNToolStripMenuItem,
+            this.loadFENToolStripMenuItem});
+            this.pasteGameToolStripMenuItem.Name = "pasteGameToolStripMenuItem";
+            this.pasteGameToolStripMenuItem.Size = new System.Drawing.Size(210, 24);
+            this.pasteGameToolStripMenuItem.Text = "File";
+            // 
+            // savePositionToFENToolStripMenuItem
+            // 
+            this.savePositionToFENToolStripMenuItem.Name = "savePositionToFENToolStripMenuItem";
+            this.savePositionToFENToolStripMenuItem.Size = new System.Drawing.Size(219, 26);
+            this.savePositionToFENToolStripMenuItem.Text = "Save Position as FEN";
+            // 
+            // saveToolStripMenuItem
+            // 
+            this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(219, 26);
+            this.saveToolStripMenuItem.Text = "Save  Game as PGN";
+            // 
+            // loadPGNToolStripMenuItem
+            // 
+            this.loadPGNToolStripMenuItem.Name = "loadPGNToolStripMenuItem";
+            this.loadPGNToolStripMenuItem.Size = new System.Drawing.Size(219, 26);
+            this.loadPGNToolStripMenuItem.Text = "Load PGN";
+            // 
+            // loadFENToolStripMenuItem
+            // 
+            this.loadFENToolStripMenuItem.Name = "loadFENToolStripMenuItem";
+            this.loadFENToolStripMenuItem.Size = new System.Drawing.Size(219, 26);
+            this.loadFENToolStripMenuItem.Text = "Load FEN";
             // 
             // chessImg
             // 
@@ -124,7 +200,16 @@
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ImageList chessImg;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
-        private System.Windows.Forms.ToolStripMenuItem quitToolStripMenuItem;
         private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.ToolStripMenuItem copyPositionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem pasteGameToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem copyToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem pastePositionToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem copyGameToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem pasteGameToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem savePositionToFENToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem loadPGNToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem loadFENToolStripMenuItem;
     }
 }

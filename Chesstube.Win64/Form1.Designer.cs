@@ -33,6 +33,7 @@
             this.button1 = new System.Windows.Forms.Button();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.scoreSheet1 = new System.Windows.Forms.RichTextBox();
             this.chessBoard1 = new Chesstube.Win64.ChessBoard();
             this.menuTabControl.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -94,6 +95,19 @@
             this.tabPage3.Text = "Training";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
+            // scoreSheet1
+            // 
+            this.scoreSheet1.Cursor = System.Windows.Forms.Cursors.Cross;
+            this.scoreSheet1.Dock = System.Windows.Forms.DockStyle.Right;
+            this.scoreSheet1.Enabled = false;
+            this.scoreSheet1.Location = new System.Drawing.Point(342, 132);
+            this.scoreSheet1.Name = "scoreSheet1";
+            this.scoreSheet1.Size = new System.Drawing.Size(527, 333);
+            this.scoreSheet1.TabIndex = 2;
+            this.scoreSheet1.Text = "";
+            this.scoreSheet1.SizeChanged += new System.EventHandler(this.scoreSheet1_SizeChanged);
+            this.scoreSheet1.TextChanged += new System.EventHandler(this.scoreSheet1_TextChanged);
+            // 
             // chessBoard1
             // 
             this.chessBoard1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
@@ -102,13 +116,16 @@
             this.chessBoard1.Name = "chessBoard1";
             this.chessBoard1.Size = new System.Drawing.Size(869, 333);
             this.chessBoard1.TabIndex = 1;
+            this.chessBoard1.MoveMade += new System.EventHandler(this.chessBoard1_MoveMade);
             this.chessBoard1.Load += new System.EventHandler(this.chessBoard1_Load);
+            this.chessBoard1.SizeChanged += new System.EventHandler(this.chessBoard1_SizeChanged);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(869, 465);
+            this.Controls.Add(this.scoreSheet1);
             this.Controls.Add(this.chessBoard1);
             this.Controls.Add(this.menuTabControl);
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
@@ -130,6 +147,7 @@
         private System.Windows.Forms.TabPage tabPage3;
         private ChessBoard chessBoard1;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.RichTextBox scoreSheet1;
     }
 }
 
